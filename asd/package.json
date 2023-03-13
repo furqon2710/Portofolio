@@ -1,20 +1,15 @@
 {
-  "name": "backend",
+  "name": "asd",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "mongoose": "^7.0.1",
-    "mysql2": "^3.2.0",
-    "sequelize": "^6.29.0"
+    "sequelize": "^6.29.1",
+    "sequelize-cli": "^6.6.0"
   }
 }

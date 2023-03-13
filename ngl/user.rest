@@ -1,0 +1,45 @@
+
+POST http://localhost:3000/register
+Content-Type: application/json
+
+{
+    "email":"arif@arif.com",
+    "username" :"arif",
+    "fullname" : "arif bin arif",
+    "password" : "hehehehehe"
+}
+###
+POST http://localhost:3000/register
+Content-Type: application/json
+
+{
+    "email":"robi@robi.com",
+    "username" :"robihehe",
+    "fullname" : "robi",
+    "password" : "hehehehehe"
+}
+###
+GET http://localhost:3000/register
+
+
+###
+GET http://localhost:3000/admin/user
+
+###
+POST http://localhost:3000/admin/delete
+Content-Type: application/json
+
+{
+    "username" :"robihehe"
+}
+
+###
+POST http://localhost:3000/message/arif
+Content-Type: application/json
+
+{
+    "body" : "login islam yok"
+}
+
+###
+GET http://localhost:3000/arif/message
