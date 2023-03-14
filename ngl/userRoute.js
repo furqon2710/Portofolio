@@ -1,6 +1,7 @@
 const express = require('express');
 const router =  express.Router()
 const {User,Message}  =  require('./model')
+const jwt =  require('jsonwebtoken')
 
 router.post('/register',(req, res) => {
     console.log('request accepted')
@@ -83,3 +84,54 @@ router.get('/:id/message',(req,res)=>{
         res.status(500).send('Internal server error')
     })
 })
+
+router.post('/login',(req,res) => {
+    const { username, password } =  req.body
+    console.log(`login attempt, username: ${username} password:${password}`)
+    authenticateUser(username,password).then(user=>{
+        if(user){
+            // create jwt token
+            const token =  jwt.sign({username:user.username},'secret_key')
+            // send token as resp
+            res.json({token});
+        }else{
+            res.status(401).send('Invalid credential')
+        }
+    }).catch(err => {
+        console.log(err)
+        res.status(500).send('Internal server error')
+    })
+})
+function verifyToken(req,res,next){
+    const header = req.headers['authorization']
+    if(typeof header !== undefined){
+        // get token from header
+        const token =  header.split(' ')[1]
+        // verify token
+        jwt.verify(bearerToken,'secret',(err,authData) =>{
+            if(err) {
+                res.status(403).send('Forbidden')
+            }else{
+                req.authData =  authData
+                next();
+            }
+        })
+    }else{
+        res.status(401).send('Unauthorized')
+    }
+}
+function authenticateUser(username, password){
+    return User.findOne({ username:username })
+    .then(user =>{
+        console.log(`user found`)
+        console.log(user)
+        if(user.password==password){
+            console.log('password match!')
+            return true
+        }else{
+            return false
+        }
+    }).catch(err=>{
+        console.log(err)
+    })
+}

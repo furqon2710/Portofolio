@@ -18,7 +18,6 @@ mongoose.connect('mongodb://127.0.0.1:27017/NGL').then(function(){
 })
 
 app.use('/', router)
-
 app.get('/', (req, res) => {
     res.send('Hello World!');});
 // start server
