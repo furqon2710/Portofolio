@@ -26,6 +26,13 @@ const userSchema  =  new mongoose.Schema({
         maxLength : 30
     },
     description : String,
+    role:{
+        type:Number,
+        required:true,
+        min:0,
+        max:2,
+        default:1
+    },
     isDeleted : {type:Boolean,default:false}})
 
 // define message db structure

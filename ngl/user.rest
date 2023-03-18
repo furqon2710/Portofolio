@@ -3,10 +3,10 @@ POST http://localhost:3000/register
 Content-Type: application/json
 
 {
-    "email":"arif@arif.com",
-    "username" :"arif",
-    "fullname" : "arif bin arif",
-    "password" : "hehehehehe"
+    "email":"admmin@admin.com",
+    "username" :"admin",
+    "fullname" : "admin",
+    "password" : "adminadmin"
 }
 ###
 POST http://localhost:3000/register
@@ -16,7 +16,8 @@ Content-Type: application/json
     "email":"robi@robi.com",
     "username" :"robihehe",
     "fullname" : "robi",
-    "password" : "hehehehehe"
+    "password" : "hehehehehe",
+    "data_virus" : "pajspoasfopa[ks]"
 }
 ###
 GET http://localhost:3000/register
@@ -34,11 +35,11 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:3000/message/arif
+POST http://localhost:3000/message_to/admin
 Content-Type: application/json
 
 {
-    "body" : "login islam yok"
+    "body" : "gelut yok"
 }
 
 ###
@@ -49,5 +50,7 @@ POST http://localhost:3000/login
 Content-Type: application/json
 
 {
-    "username" : "arif",
-    "password" : "hehehehehe"}
+    "username" : "admin",
+    "password" : "adminadmin"}
+###
+GET http://localhost:3000/admin/mymessage

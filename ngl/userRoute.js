@@ -8,22 +8,23 @@ router.post('/register',(req, res) => {
     console.log(req.body)
     // Checking is there any missing fields
     if (!req.body.email || !req.body.password || !req.body.username || !req.body.fullname) {
-        res.status(400).send('Error: Missing required fields.')}
+        return(res.status(400).send('Error: Missing required fields.'))}
+    console.log('through!')
     // Checking is the email and username is unique?
     User.exists({ $or: [{ username: req.body.username }, { email: req.body.email }] })
     .then(function(exist){
         if(exist){
-            res.status(400).send('Error: Duplicate username or email');
+            return(res.status(400).send('Error: Duplicate username or email'));
         }else{
             const data =  new User(req.body)
             data.save().then(() => res.status(200).send('data berhasil ditambah')).catch(function(err){
                 console.log(err)
-                res.status(500).send('Error: Internal server error');
+                return(res.status(500).send('Error: Internal server error'));
             })
         }
     })
     .catch(function(err){
-        console.log(err)
+        return(console.log(err))
     })
     // convert json to fit in the structure
 
@@ -50,13 +51,27 @@ router.post('/admin/delete',(req,res)=>{
     })
 })
 
-router.post('/user/update',(req,res)=>{
-    res.status(500).send('this method is on progress')
+router.post('/:username/update',verifyToken,(req,res)=>{
+    const id =  req.user.id
+    const update = {}
+    if(req.body.email){update.email =  req.body.email}
+    if(req.body.username){update.username = req.body.username}
+    if(req.body.fullName){update.fullName =  req.body.fullName}
+    if(req.body.password){update.password = req.body.password}
+    if(req.body.description){update.description =  req.body.description}
+    User.findOneAndUpdate({_id:id},{$set:update}, {new:true})
+    .then(doc =>{
+        console.log(doc)
+        return res.status(200).send(doc)
+    }).catch(err =>{
+        console.log(err)
+    })
 })
 
-router.post('/message/:id',(req,res)=>{
+router.post('/:username/send_me',(req,res)=>{
     console.log('request accepted')
-    username =  req.params.id
+    username =  req.params.username
+    console.log(username)
     if (!req.body.body) {
         res.status(400).send('Error: Missing required fields.')}
     const message =  req.body
@@ -72,13 +87,18 @@ router.post('/message/:id',(req,res)=>{
         })
     })
 })
-router.get('/:id/message',(req,res)=>{
-    const username = req.params.id
+router.get('/:username/mymessage',verifyToken,(req,res)=>{
+    user =  req.user
+    User.findOne({username:user.username}).then(function(search_result){
+        console.log(search_result)
+        if(search_result!==null){
+            Message.find({receiver:search_result._id}).then(function(msg){
+                res.status(200).send(msg)
+            }).catch(function(err){ res.status(500).send('Internal server error')})
+        }else{
+            res.status(400).send('User not found')
+        }
 
-    User.findOne({username:username}).then(function(user){
-        Message.find({receiver:user.id}).then(function(msg){
-            res.status(200).send(msg)
-        }).catch(function(err){ res.status(500).send('Internal server error')})
     }).catch(function(err){
         console.log(err)
         res.status(500).send('Internal server error')
@@ -91,28 +111,47 @@ router.post('/login',(req,res) => {
     authenticateUser(username,password).then(user=>{
         if(user){
             // create jwt token
-            const token =  jwt.sign({username:user.username},'secret_key')
+            console.log('coming through')
+            console.log(user)
+            const token =  jwt.sign({username:user.username,id:user._id.toString(),role:user.role},'secret_key')
             // send token as resp
             res.json({token});
-        }else{
-            res.status(401).send('Invalid credential')
         }
-    }).catch(err => {
-        console.log(err)
-        res.status(500).send('Internal server error')
+    }).catch(error => {
+        console.log(error)
+        if (error.message === 'User not found') {
+            res.status(401).send(error.message)
+        } else if (error.message === 'Invalid Password') {
+            console.log('password salah')
+            res.status(401).send(error.message)
+        } else {
+            // console.error(error);
+            res.status(500).json({ error: 'Internal server error' });
+        } 
     })
 })
+router.get('/protected',verifyToken,(req,res)=>{
+    res.json({message:`welcome ${req.user.username} with id ${req.user.id}`})
+})
+// ========================AREA FUNCTION====================
 function verifyToken(req,res,next){
     const header = req.headers['authorization']
+    // console.log(header)
     if(typeof header !== undefined){
+        console.log('login')
         // get token from header
         const token =  header.split(' ')[1]
         // verify token
-        jwt.verify(bearerToken,'secret',(err,authData) =>{
+        // console.log(token)
+        if(!token){
+            return res(401).send('Unauthorized')
+        }
+        jwt.verify(token,'secret_key',(err,authData) =>{
             if(err) {
                 res.status(403).send('Forbidden')
             }else{
-                req.authData =  authData
+                // console.log(authData)
+                req.user =  authData
                 next();
             }
         })
@@ -120,18 +159,18 @@ function verifyToken(req,res,next){
         res.status(401).send('Unauthorized')
     }
 }
-function authenticateUser(username, password){
-    return User.findOne({ username:username })
-    .then(user =>{
-        console.log(`user found`)
-        console.log(user)
-        if(user.password==password){
-            console.log('password match!')
-            return true
+async function authenticateUser(username, password){
+    try {
+        const user  = await User.findOne({username:username})
+        if(!user){
+            throw new Error('User not found')
         }else{
-            return false
+            if(user.password !== password){
+                throw new Error('Invalid Password')
+            }
+        return user;
         }
-    }).catch(err=>{
-        console.log(err)
-    })
+    } catch(error){
+        throw error
+    }
 }
